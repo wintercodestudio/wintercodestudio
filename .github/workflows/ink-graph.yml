@@ -1,0 +1,30 @@
+name: Redraw ink graph
+
+on:
+  schedule:
+    - cron: "17 0 * * *" # daily, 07:17 in Việt Nam
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [scripts/ink_graph.py, .github/workflows/ink-graph.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  draw:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Draw
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/ink_graph.py "${{ github.repository_owner }}"
+      - name: Commit if changed
+        run: |
+          git add dist
+          if git diff --cached --quiet; then echo "No change."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Redraw ink graph"
+          git push
